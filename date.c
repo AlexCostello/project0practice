@@ -12,37 +12,28 @@ struct date{
     int day;
     int month;
     int year;
-    int dateint;
 };
 
 Date *date_create(char *datestr){
     Date *d;
-    char *temp = (char *)malloc(sizeof(char)*10);
-    //char *p = &temp[0];
-
+    char *day = (char *)malloc(sizeof(char)*3);
+    char *month = (char *)malloc(sizeof(char)*3);
+    char *year = (char *)malloc(sizeof(char)*5);
     d = (Date *)malloc(sizeof(Date));
     d->datestring = datestr;
-    /* potentially smarter way to do this... try later
-    while(*datestr != '\0'){
-        printf("%c\n", *datestr);
-        if(*datestr != '/'){
-            *p = *datestr;
-            *p++;
-        }
-        datestr++;
-    }
-    d->dateint = atoi(temp);
-    printf("%d\n", d->dateint);
-    //printf("Date in date create: %s\n", p);
-    */
 
-    strncpy(temp, datestr, 2);
-    d->day = atoi(temp);
-    strncpy(temp, datestr+3, 2);
-    d->month = atoi(temp);
-    strncpy(temp, datestr+6, 4);
-    d->year = atoi(temp);
-    free(temp);
+    strncpy(day, datestr, 2);
+    day[2] = '\0';
+    d->day = atoi(day);
+    strncpy(month, datestr+3, 2);
+    month[2] = '\0';
+    d->month = atoi(month);
+    strncpy(year, datestr+6, 4);
+    year[4] = '\0';
+    d->year = atoi(year);
+    free(day);
+    free(month);
+    free(year);
 
     return d;
 }

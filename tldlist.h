@@ -17,7 +17,7 @@ int tldlist_add(TLDList *tld, char *hostname, Date *d);
 
 TLDIterator *tldlist_iter_create(TLDList *tld);
 
-void tldlist_iter_destory(TLDIterator *iter);
+void tldlist_iter_destroy(TLDIterator *iter);
 
 void tldlist_print(TLDNode *node);
 

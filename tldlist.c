@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-/*TODO ADD ROTATES. ALL ELSE SHOULD BE THERE!*/
 
 struct tldlist{
     Date *begin;
@@ -37,9 +36,17 @@ TLDList *tldlist_create(Date *begin, Date *end){
     return tld;
 }
 
+void tldnode_destroy(TLDNode *node){
+    if(node == NULL)
+        return;
+    tldnode_destroy(node->left);
+    tldnode_destroy(node->right);
+    free(node->tldName);
+    free(node);
+}   
+
 void tldlist_destroy(TLDList *tld){
-    date_destroy(tld->begin);
-    date_destroy(tld->end);
+    tldnode_destroy(tld->root);
     free(tld);
 }
 
@@ -49,10 +56,9 @@ TLDNode *tldnode_create() {
     node->left = NULL;
     node->right = NULL;
     node->count = 0;
-
+    node->tldName = NULL;
     return node;
 }
-
 
 char *processname(char *name){
     char *temp;
@@ -91,6 +97,7 @@ int balance_factor( TLDNode *node) {
 }
 
 TLDNode *rotate_leftleft ( TLDNode *node ) {
+    printf("doing a leftleft rotate...\n");
     TLDNode *a = node;
     TLDNode *b = a->left;
 
@@ -101,6 +108,7 @@ TLDNode *rotate_leftleft ( TLDNode *node ) {
 }
 
 TLDNode *rotate_leftright( TLDNode *node ) {
+    printf("doing a leftright rotate...\n");
     TLDNode *a = node;
     TLDNode *b = a->left;
     TLDNode *c = b->right;
@@ -114,6 +122,7 @@ TLDNode *rotate_leftright( TLDNode *node ) {
 }
 
 TLDNode *rotate_rightleft( TLDNode *node ) {
+    printf("doing a rightleft rotate...\n");
     TLDNode *a = node;
     TLDNode *b = a->right;
     TLDNode *c = b->left;
@@ -128,6 +137,7 @@ TLDNode *rotate_rightleft( TLDNode *node ) {
 }
 
 TLDNode *rotate_rightright( TLDNode *node ){
+    printf("doing a rightright rotate...\n");
     TLDNode *a = node;
     TLDNode *b = a->right;
     
@@ -180,11 +190,10 @@ void tldlist_balance(TLDList *tld) {
 
 
 int tldlist_add(TLDList *tld, char *hostname, Date *d){
-    char *name = processname(hostname);
     int compare = 0;
     if(date_compare(d, tld->begin) == -1 || date_compare(d, tld->end) == 1)
         return 0;
-
+    char *name = processname(hostname);
     tld->count++;
     TLDNode *node = NULL;
     TLDNode *next = NULL;
@@ -209,6 +218,7 @@ int tldlist_add(TLDList *tld, char *hostname, Date *d){
             }
             else{
                 next->count++;
+                free(name);
                 last = next;
                 return 1;
             }   
@@ -225,8 +235,7 @@ int tldlist_add(TLDList *tld, char *hostname, Date *d){
             last->right = node;
 
 
-    } 
-    
+    }     
     tldlist_balance(tld);   
     return 1;
     
@@ -244,23 +253,22 @@ void tldlist_print(TLDNode *node){
     if( node == NULL )
         return; 
 
-    printf("TLD: %s, Count: %ld\n", node->tldName, node->count);
     tldlist_print(node->left);
+    
+    printf("TLD: %s, Count: %ld\n", node->tldName, node->count);
     tldlist_print(node->right); 
+    
 }
 
 void **traverse(TLDNode *node, void** e, int *index){
     if ( node == NULL )
         return NULL;
+    traverse(node->left, e, index);
     e[*index] = node;
     *index = *index + 1;
-    traverse(node->left, e, index);
     traverse(node->right, e, index);
-    //printf("Added node: %s, Index: %d\n", node->tldName, *index);
     return e;
 }
-
-
 
 TLDIterator *tldlist_iter_create(TLDList *tld){
     TLDIterator *iterator = NULL;
@@ -272,20 +280,19 @@ TLDIterator *tldlist_iter_create(TLDList *tld){
     iterator->next = 0L;
     iterator->size = tld->size;
     iterator->elements = traverse(tld->root, elements, &index);
-    //printf("Iterator size: %ld\n", iterator->size);
     return iterator;
 }
 
 TLDNode *tldlist_iter_next(TLDIterator *iter){
-    void *element;
+    void *element = NULL;
     if(iter->next < iter->size) {
         element = iter->elements[iter->next++];
-        //printf("IN NEXT. ELEMENT: %s, NEXT: %ld\n", element->tldName, iter->next);
     }
     return element;
 }
     
 void tldlist_iter_destroy(TLDIterator *iter){
+    free(iter->elements);
     free(iter);
 }
 
